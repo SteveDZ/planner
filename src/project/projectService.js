@@ -6,12 +6,6 @@ var assert = require('assert');
 
 var projectService = (function() {
 
-    //MongoClient.connect(url, function(err, db) {
-    //    assert.equal(null, err); //Assert that err equals null
-    //    console.log("connected to database");
-    //    db.close();
-    //});
-
     var getProjects = function() {
         return [
             {
