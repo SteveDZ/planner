@@ -17,3 +17,4 @@ A Team has multiple Users
 A User belongs to multiple Teams
 A Project has multiple Tasks
 A Task belongs to 1 Project
+ 

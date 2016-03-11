@@ -1,14 +1,27 @@
 var express = require('express');
 var logger = require('morgan');
 var bodyParser = require('body-parser');
+
 var projectRouter = require('./src/project/projectRouter');
+var projectService = require('./src/project/projectService');
 
-var app = express();
+var app = function(db) {
 
-app.use(logger('dev'));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+    var initializeApp = function() {
+        var expressApp = express();
 
-app.use('/api/project', projectRouter());
+        expressApp.use(logger('dev'));
+        expressApp.use(bodyParser.json());
+        expressApp.use(bodyParser.urlencoded({ extended: false }));
+
+        expressApp.use('/api/project', projectRouter(projectService(db)));
+
+        return expressApp;
+    };
+
+    return {
+        initializeApp: initializeApp
+    }
+};
 
 module.exports = app;

@@ -3,15 +3,14 @@
 /**
  * Module dependencies.
  */
-
-var app = require('../app');
+var mongoDbFactory = require('../src/common/MongoDbFactory');
+var expressApp = require('../app')(mongoDbFactory.getInstance());
 var debug = require('debug')('planner:server');
 var http = require('http');
-
+var app = expressApp.initializeApp();
 /**
  * Get port from environment and store in Express.
  */
-
 var port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
 
