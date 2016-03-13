@@ -1,9 +1,8 @@
 /**
  * Created by stevedezitter on 02/03/16.
  */
-var express = require('express');
-
 var routes = function(projectService) {
+    var express = require('express');
     var projectsRouter = express.Router();
 
     var projects = [
@@ -39,28 +38,25 @@ var routes = function(projectService) {
 
     projectsRouter
         .get('/', function(req, res){
+            console.log('projectRouter#get');
             projectService.getAllProjects(function(projects) {
-                res.json(projects);
+                if(projects && projects.length > 0) {
+                    res.status(200).json(projects);
+                }else{
+                    res.status(404);
+                }
             });
+            //res.json(projects);
         })
         .get('/:projectId', function(req, res) {
-            console.log('called /:projectId with id: ' + req.params.projectId);
+            projectService.findProjectById(req.params.projectId, function(project) {
+                if(project) {
+                    res.status(200).json(project);
+                }else {
+                    res.status(404);
+                }
 
-            var projectId = req.params.projectId;
-
-            var filteredProjects = projects.filter(function(project) {
-                return project._id === projectId;
             });
-
-            console.log(filteredProjects);
-
-            if(filteredProjects && filteredProjects.length > 0){
-                console.log('filteredProjects exist!');
-                res.status(200).json(filteredProjects[0]);
-            }else{
-                console.log('Not found, no filteredProjects');
-                res.status(404);
-            }
         })
         .post('/', function(req, res){
             console.log('post api/projects/');
@@ -79,6 +75,8 @@ var routes = function(projectService) {
             res.status(201).send();
         })
         .put('/:projectId', function(req, res) {
+            var projectId = req.params.projectId;
+
             var filteredProjects = projects.filter(function(project) {
                 return project._id === projectId;
             });
@@ -93,9 +91,11 @@ var routes = function(projectService) {
             console.log('calling patch: ' + req.params.projectId);
             var foundProject = findFilteredProject(req.params.projectId);
 
-            for(p in req.body){
-                console.log('property ' + p + ' is ' + foundProject[p] + ' vervangen met ' + req.body[p]);
-                foundProject[p] = req.body[p];
+            for(var p in req.body){
+                if(req.body.hasOwnProperty(p)) {
+                    console.log('property ' + p + ' is ' + foundProject[p] + ' vervangen met ' + req.body[p]);
+                    foundProject[p] = req.body[p];
+                }
             }
 
             res.status(204);

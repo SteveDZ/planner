@@ -3,58 +3,73 @@
 /**
  * Module dependencies.
  */
-var mongoDbFactory = require('../src/common/MongoDbFactory');
-var expressApp = require('../app')(mongoDbFactory.getInstance());
+var expressApp = require('../app');
 var debug = require('debug')('planner:server');
 var http = require('http');
-var app = expressApp.initializeApp();
+
 /**
  * Get port from environment and store in Express.
  */
 var port = normalizePort(process.env.PORT || '3000');
-app.set('port', port);
 
 /**
- * Create HTTP server.
+ * Define Options for MongoDB connection pooling
+ *
+ * @type {{db: {native_parser: boolean}, server: {auto_reconnect: boolean, poolSize: number, socketOptions: {connectTimeoutMS: number}}, replSet: {}, mongos: {}}}
  */
+var mongoOptions = {
+    db: {
+        native_parser: false 
+    },
+    server: {
+        auto_reconnect: true,
+        poolSize : 5, 
+        socketOptions: {
+            connectTimeoutMS: 500 
+        } 
+    }, 
+    replSet: {}, 
+    mongos: {}
+}
 
-var server = http.createServer(app);
+expressApp.initializeDb(mongoOptions, dbInitialized);
 
-/**
- * Listen on provided port, on all network interfaces.
- */
+function dbInitialized(db) {
+    var app = expressApp.initializeApp(db);
+    app.set('port', port);
 
-server.listen(port);
-//server.on('listening', onListening);
+    var server = http.createServer(app);
+
+    server.listen(port);
+    //server.on('listening', onListening);
+}
 
 /**
  * Normalize a port into a number, string, or false.
  */
-
 function normalizePort(val) {
-  var port = parseInt(val, 10);
+    var port = parseInt(val, 10);
 
-  if (isNaN(port)) {
-    // named pipe
-    return val;
-  }
+    if (isNaN(port)) {
+        // named pipe
+        return val;
+    }
 
-  if (port >= 0) {
-    // port number
-    return port;
-  }
+    if (port >= 0) {
+        // port number
+        return port;
+    }
 
-  return false;
+    return false;
 }
 
 /**
  * Event listener for HTTP server "listening" event.
  */
-
 //function onListening() {
-//  var addr = server.address();
-//  var bind = typeof addr === 'string'
-//    ? 'pipe ' + addr
-//    : 'port ' + addr.port;
-//  debug('Listening on ' + bind);
+//    var addr = server.address();
+//    var bind = typeof addr === 'string'
+//        ? 'pipe ' + addr
+//        : 'port ' + addr.port;
+//    debug('Listening on ' + bind);
 //}
