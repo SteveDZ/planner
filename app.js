@@ -5,7 +5,13 @@ var MongoClient = require('mongodb').MongoClient; 
 var assert = require('assert'); 
 
 var projectRouter = require('./src/project/projectRouter');
+var taskRouter = require('./src/task/taskRouter');
 var projectService = require('./src/project/projectService');
+var taskService = require('./src/task/taskService');
+var userRouter = require('./src/user/userRouter');
+var userService = require('./src/user/userService');
+var boardRouter = require('./src/board/boardRouter');
+var boardService = require('./src/board/boardService');
 
 var app = (function() {
 
@@ -26,6 +32,9 @@ var app = (function() {
         app.use(bodyParser.urlencoded({ extended: false }));
 
         app.use('/api/project', projectRouter(projectService(db)));
+        app.use('/api/task', taskRouter(taskService(db)));
+        app.use('/api/user', userRouter(userService(db)));
+        app.use('/api/board', boardRouter(boardService(db)));
 
         return app;
     };

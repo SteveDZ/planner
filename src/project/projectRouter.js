@@ -5,37 +5,6 @@ var routes = function(projectService) {
     var express = require('express');
     var projectsRouter = express.Router();
 
-    var projects = [
-        {
-            _id: '1',
-            title: 'AMDB Usermanagement',
-            description: 'Usermanagement project',
-            teamMembers: ['1','2']
-        },
-        {
-            _id: '2',
-            title: 'PROVIKMO Enterprise Mobility',
-            description: 'Investigating a Enterprise Mobile solution towards building mobile apps. Take into account offline storage, security, etc...',
-            teamMembers: ['3','4']
-        },
-        {
-            _id: '3',
-            title: 'PXS TV Overal',
-            description: 'A Native mobile client which allows Proximus TV subscribers to watch TV on whatever device',
-            teamMembers: ['5','6']
-        }
-    ];
-
-    var findFilteredProject = function(projectId) {
-        var filteredProjects = projects.filter(function(project) {
-            return project._id === projectId;
-        });
-
-        if(filteredProjects && filteredProjects.length > 0) {
-            return filteredProjects[0];
-        }
-    };
-
     projectsRouter
         .get('/', function(req, res){
             console.log('projectRouter#get');
@@ -46,7 +15,6 @@ var routes = function(projectService) {
                     res.status(404);
                 }
             });
-            //res.json(projects);
         })
         .get('/:projectId', function(req, res) {
             projectService.findProjectById(req.params.projectId, function(project) {
@@ -59,46 +27,41 @@ var routes = function(projectService) {
             });
         })
         .post('/', function(req, res){
-            console.log('post api/projects/');
-            var valueWithHighestIndex = projects.reduce(function(previousValue, currentValue, currentIndex, array) {
-                var previousId = previousValue._id;
-                var currentId = currentValue._id;
-                return previousId > currentId ? previousValue: currentValue;
+            projectService.createProject(req.body, function(result) {
+                res.set('Location', 'http://' +  req.headers.host + '/api/project/' + result.project._id);
+                res.sendStatus(201);
+            }, function(error) {
+                res.status(400).send(error);
             });
-
-            console.log(req.body);
-            console.log(valueWithHighestIndex);
-
-            req.body._id = (parseInt(valueWithHighestIndex._id, 10) + 1).toString();
-            projects.push(req.body);
-
-            res.status(201).send();
         })
         .put('/:projectId', function(req, res) {
-            var projectId = req.params.projectId;
-
-            var filteredProjects = projects.filter(function(project) {
-                return project._id === projectId;
+            projectService.updateCompleteProject(req.params.projectId, req.body, function(result) {
+                if(result.err) {
+                    res.status(result.status).send(result.err);
+                }else{
+                    res.sendStatus(204);
+                }
             });
-
-            if(filteredProjects && filteredProjects.length > 0) {
-                filteredProjects[0] = req.body;
-            }else{
-                res.status(404);
-            }
         })
         .patch('/:projectId', function(req, res) {
-            console.log('calling patch: ' + req.params.projectId);
-            var foundProject = findFilteredProject(req.params.projectId);
-
-            for(var p in req.body){
-                if(req.body.hasOwnProperty(p)) {
-                    console.log('property ' + p + ' is ' + foundProject[p] + ' vervangen met ' + req.body[p]);
-                    foundProject[p] = req.body[p];
+            projectService.updatePartialProject(req.params.projectId, req.body, function(result) {
+                if(result.err) {
+                    res.status(result.status).send(result.err);
+                }else{
+                    res.sendStatus(204);
                 }
-            }
+            })
+        })
+        .delete('/:projectId', function(req, res) {
+            // Delete implemented using promises
+            var deletePromise = projectService.deleteProject(req.params.projectId);
 
-            res.status(204);
+            deletePromise.then(function(result){
+                res.sendStatus(204);
+            },
+            function(err){
+                res.sendStatus(400);
+            });
         });
 
     return projectsRouter;
